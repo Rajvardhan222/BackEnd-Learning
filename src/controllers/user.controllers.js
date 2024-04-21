@@ -2,8 +2,9 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../module/user.models.js";
 import  jwt  from "jsonwebtoken";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { deleteOnCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { hashSync } from "bcrypt";
 const registerUser = asyncHandler(async (req, res) => {
     // get user details from frontend
     //validation not empty
@@ -250,4 +251,140 @@ const updateUserInformation = asyncHandler(async(req,res)=>{
     )
 })
 
-export { registerUser,logginUser ,logout,refreshAccessToken,changeUserPassword,updateUserInformation};
+const changeAvatar = asyncHandler(async(req,res)=>{
+            let avatarLocalPath = req.file
+            console.log("Avatar File checking line 256",req.file,req.user);
+            let user = await User.findById(req.user._id)
+
+            if(!user){
+                throw new ApiError(404,"Invalid User trying to change profile photo")
+            }
+
+           
+           
+        const uploadAvatar =await   uploadOnCloudinary(avatarLocalPath.path)
+        if (!uploadAvatar) {
+            throw new ApiError(404,"Unable to upload the avatar to cloudinary")
+        }
+
+
+        const deleteFile = await deleteOnCloudinary(user.avatar)
+
+        user.avatar = uploadAvatar.url
+
+       let updatedUser = await user.save()
+
+
+        res.status(200).json(
+            new ApiResponse(200,{updatedUser},"Avatar updated Successfully")
+        )
+})
+
+const ChangeCoverImage = asyncHandler(async(req,res)=>{
+    let coverImageLocalPath = req.file
+    console.log("Avatar File checking line 256",req.file,req.user);
+    let user = await User.findById(req.user._id)
+
+    if(!user){
+        throw new ApiError(404,"Invalid User trying to change profile photo")
+    }
+
+   
+   
+const coverImage =await   uploadOnCloudinary(coverImageLocalPath.path)
+if (!coverImage) {
+    throw new ApiError(404,"Unable to upload the avatar to cloudinary")
+}
+
+
+const deleteFile = await deleteOnCloudinary(user.coverImage)
+
+user.coverImage = coverImage.url
+
+let updatedUser = await user.save()
+
+
+res.status(200).json(
+    new ApiResponse(200,{updatedUser},"Avatar updated Successfully")
+)
+})
+
+
+const getUserChannelProfile = asyncHandler(async (req,res)=>{
+
+    let {username} = req.params;
+
+    if(!username){
+        throw new ApiError(404,"Invalid User Id ")
+    }
+
+  let channel =   await User.aggregate([
+        {
+            $match: {
+                username:username
+            }
+        },
+        {
+            $lookup :{
+                from : "subscriptions",
+                localField :"_id",
+                foreignField:"channel",
+                as:"subscribers"
+            }
+        },
+        {
+            $lookup :{
+                from : "subscriptions",
+                localField :"_id",
+                foreignField:"subscriber",
+                as:"subscribedTo"
+            }
+        },
+        {
+            $addFields:{
+               subscribersCount : {
+                $size : "$subscribers"
+               },
+               subscribedToCount : {
+                $size : "$subscribedTo"
+               },
+               isSubscribed : {
+                $cond:{
+                    if : {$in  :["req.user?._id","$subscriptions.subscriber"]},
+                    then :true,
+                    else : false
+                }
+               }
+            }
+        },
+        {
+            $project :{
+                fullName : 1,
+                username:1,
+                subscribers:1,
+                subscribedTo:1,
+                subscribersCount:1,
+                subscribedToCount:1,
+                avatar:1,
+                isSubscribed:1,
+                coverImage:1
+
+            }
+        }
+    ])
+
+    if (!channel?.length) {
+        throw new ApiError(404,"Channel does not exist ")
+    }
+
+    res.status(201).json(
+        new ApiResponse(201,
+        
+            channel[0],
+            "Channel fetched successfully"
+
+        )
+    )
+
+})
+export { registerUser,logginUser ,logout,refreshAccessToken,changeUserPassword,updateUserInformation,changeAvatar,ChangeCoverImage};
