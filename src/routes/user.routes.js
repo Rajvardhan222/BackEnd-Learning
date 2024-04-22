@@ -3,6 +3,7 @@ import {
     ChangeCoverImage,
     changeAvatar,
     changeUserPassword,
+    getUserChannelProfile,
     logginUser,
     logout,
     refreshAccessToken,
@@ -45,6 +46,7 @@ router.route("/update-coverImage").post(
      varifyJWT,
      ChangeCoverImage
  );
+ router.route("/channel/:username").patch(varifyJWT,getUserChannelProfile)
 
 router.route("/generate-access-token").post(refreshAccessToken);
 export default router;

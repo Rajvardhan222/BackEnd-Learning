@@ -32,8 +32,8 @@ const registerUser = asyncHandler(async (req, res) => {
     const avatarLocalPath = req.files?.avatar[0]?.path;
     console.log("avatar path", req.files);
     let coverImageLocalPath;
-    console.log("cover image path ", req.files.coverImage.length);
-    if (req.files && req.files.coverImage.length > 0) {
+  
+    if (req.files && req.files.coverImage?.length > 0) {
         coverImageLocalPath = req.files?.coverImage[0]?.path;
         console.log("this if executed");
     } else {
@@ -350,7 +350,7 @@ const getUserChannelProfile = asyncHandler(async (req,res)=>{
                },
                isSubscribed : {
                 $cond:{
-                    if : {$in  :["req.user?._id","$subscriptions.subscriber"]},
+                    if : {$in  :[req.user?._id,"$subscriptions.subscriber"]},
                     then :true,
                     else : false
                 }
@@ -387,4 +387,4 @@ const getUserChannelProfile = asyncHandler(async (req,res)=>{
     )
 
 })
-export { registerUser,logginUser ,logout,refreshAccessToken,changeUserPassword,updateUserInformation,changeAvatar,ChangeCoverImage};
+export { registerUser,logginUser ,logout,refreshAccessToken,changeUserPassword,updateUserInformation,changeAvatar,ChangeCoverImage,getUserChannelProfile};
