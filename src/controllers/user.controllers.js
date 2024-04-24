@@ -4,7 +4,7 @@ import { User } from "../module/user.models.js";
 import jwt from "jsonwebtoken";
 import { deleteOnCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { hashSync } from "bcrypt";
+import mongoose from "mongoose";
 const registerUser = asyncHandler(async (req, res) => {
     // get user details from frontend
     //validation not empty
@@ -353,7 +353,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
                 isSubscribed: {
                     $cond: {
                         if: {
-                            $in: [req.user?._id, "$subscriptions.subscriber"],
+                            $in: [req.user?._id, "$subscribers.subscriber"],
                         },
                         then: true,
                         else: false,
@@ -389,6 +389,54 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         )
     );
 });
+
+const getUserHistory = asyncHandler(async (req, res) => {
+    let watchHistory = await User.aggregate([
+        {
+            $match: {
+                _id: new mongoose.Types.ObjectId(req.user?._id),
+            },
+        },
+        {
+            $lookup: {
+                from: "videos",
+                localField: "watchHistory",
+                foreignField: "_id",
+                as: "watchesHistoryUser",
+
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "owner",
+                            foreignField: "_id",
+                            as: "VideoOwner",
+                            pipeline: [
+                                {
+                                    $project: {
+                                        username: 1,
+                                        fullName: 1,
+                                        avatar: 1,
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                ],
+            },
+        },
+        {
+            $project:{
+                watchesHistoryUser:1
+            }
+        }
+        
+    ]);
+
+    res.status(200).json(
+        new ApiResponse(200,watchHistory[0] ,"user History fetched")
+    )
+});
 export {
     registerUser,
     logginUser,
@@ -399,4 +447,5 @@ export {
     changeAvatar,
     ChangeCoverImage,
     getUserChannelProfile,
+    getUserHistory,
 };

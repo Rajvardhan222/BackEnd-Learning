@@ -10,10 +10,11 @@ cloudinary.config({
 
 const uploadOnCloudinary = async (filePath) => {
     try {
-        console.log(filePath);
+        
         if (!filePath) return null;
         let response = await cloudinary.uploader.upload(filePath, {
             resource_type: "auto",
+            
         });
 
         console.log("File uploaded successfully on cloudinary ", response);
@@ -25,14 +26,15 @@ const uploadOnCloudinary = async (filePath) => {
     }
 };
 
-const deleteOnCloudinary = async (fileLink) => {
+const deleteOnCloudinary = async (fileLink,type = "image") => {
     try {
         const parts = fileLink.split("/");
         const imageNameWithExtension = parts[parts.length - 1];
         const imageNameWithoutExtension = imageNameWithExtension.split(".")[0];
-        const deleteFile = await cloudinary.uploader.destroy(
-            imageNameWithoutExtension
+        const deleteFile = await cloudinary.api.delete_resources(
+           [ imageNameWithoutExtension],{resource_type:type}
         );
+        console.log("id to delete",imageNameWithoutExtension);
         if (!deleteFile) {
             throw new ApiError(
                 500,

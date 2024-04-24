@@ -24,7 +24,9 @@ app.use(express.static("public"));
 app.use(cookieParser());
 
 import userRoute from "./routes/user.routes.js";
+import VideoUploaderRoute from "./routes/uploadVideoROute.routes.js";
 
 app.use("/api/v1/users", userRoute);
+app.use("/api/v1/video", VideoUploaderRoute);
 
 export default app;
