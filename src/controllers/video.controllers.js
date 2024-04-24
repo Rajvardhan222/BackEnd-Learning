@@ -185,5 +185,57 @@ sort[sortBy] = parseInt(sortType);
 const getVideoById = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     //TODO: get video by id
+    let pipeline = await Video.aggregate([
+        {
+            "$match" :{
+                "_id" : new mongoose.Types.ObjectId(videoId)
+            }
+        },
+        
+        {
+            "$lookup":{
+                "from" : "users",
+                "localField" : "owner",
+                "foreignField" : "_id",
+                "as":"creatorOwner",
+                pipeline: [
+                    {
+                      $project: {
+                        "username": 1,
+                        "avatar": 1,
+                      },
+                    },
+                  ],
+                
+                  
+               
+            }
+        },
+        
+        {
+            "$project": {
+                "videoFile": 1,
+                "thumbnail": 1,
+                "title": 1,
+                "description": 1,
+                "duration": 1,
+                "views": 1,
+                "isPublished": 1,
+               
+                "creatorOwner" :1
+                
+                
+              
+            }
+          } ,
+          {
+            $unwind:"$creatorOwner"
+          }
+         
+    ])
+
+    res.status(200).json(
+        new ApiResponse(200,pipeline,"Video fetched successfully")
+    )
 })
 export { uploadVideo ,updateVideoData,deleteVideo,togglePublishStatus,getAllVideos,getVideoById};
