@@ -84,7 +84,13 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
     if (!isVideoThere) {
         throw new ApiError(401, "Invalid Video Id");
     }
-
+   let isVideoAlreadyAdded = playlist.videos.find(id => String(id) === String(isVideoThere._id))
+   console.log(isVideoThere);
+   console.log(isVideoAlreadyAdded);
+   if(isVideoAlreadyAdded){
+    console.log(isVideoAlreadyAdded);
+    throw new ApiError(401, "Video already added");
+   }
     playlist.videos.push(new mongoose.Types.ObjectId(videoId));
     let saveVideo = await playlist.save();
     if (!saveVideo) {
@@ -112,7 +118,8 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
         throw new ApiError(401, "Invalid Video Id");
     }
 
-    playlist.videos.filter((id) => id !== isVideoThere._id);
+   let deletedVideosList = playlist.videos.filter((id) => String(id) !== String(isVideoThere._id));
+    playlist.videos = deletedVideosList;
     let saveDeletedVideoPlaylist = await playlist.save();
     if (!saveDeletedVideoPlaylist) {
         throw new ApiError(
@@ -160,9 +167,10 @@ const updatePlaylist = asyncHandler(async (req, res) => {
     if (!playlist) {
         throw new ApiError(200, "Invalid Playlist provided");
     }
-    let updatePLaylist = await Playlist.findByIdAndUpdate(playlistId, {
-        $or: [{ name }, { description }],
-    });
+    const updateObject = {};
+    if (name) updateObject.name = name;
+    if (description) updateObject.description = description;
+    let updatePLaylist = await Playlist.findByIdAndUpdate(playlistId, updateObject);
     if (!updatePLaylist) {
         throw new ApiError(500, "Unable to update playlist currently");
     }

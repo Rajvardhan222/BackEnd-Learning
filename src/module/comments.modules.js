@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-
+import aggregatePaginate from "mongoose-aggregate-paginate-v2";
 const CommentsSchema = new Schema(
     {
         content: {
@@ -7,11 +7,11 @@ const CommentsSchema = new Schema(
             required: true,
         },
         video: {
-            type: Object.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Video",
         },
         owner: {
-            type: Object.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "User",
         },
     },
@@ -19,5 +19,5 @@ const CommentsSchema = new Schema(
         timestamps: true,
     }
 );
-
+CommentsSchema.plugin(aggregatePaginate)
 export const Comments = mongoose.model("Comments", CommentsSchema);
