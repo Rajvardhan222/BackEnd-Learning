@@ -16,11 +16,11 @@ To get started with this project, follow these steps:
    npm install
    ```
 
-3. Certainly! Here's a Markdown (`.md`) file for your environment variables setup:
+
 
 ---
 
-# Environment Variables
+#   Environment Variables
 
 To set up environment variables for your project, follow these steps:
 
