@@ -29,12 +29,13 @@ import SubscriptionRoutes from "./routes/subscription.routes.js";
 import playListRoute from "./routes/playlistRoute.routes.js";
 import CommentRoute from "./routes/Comments.routes.js";
 import TweetsRoute from "./routes/tweets.routes.js";
-
+import LikeRoute from "./routes/likes.routes.js"
 app.use("/api/v1/users", userRoute);
 app.use("/api/v1/video", VideoUploaderRoute);
 app.use("/api/v1/subscription", SubscriptionRoutes);
 app.use("/api/v1/playlist", playListRoute);
 app.use("/api/v1/comments", CommentRoute);
 app.use("/api/v1/tweets", TweetsRoute);
+app.use("/api/v1/like", LikeRoute)
 
 export default app;
